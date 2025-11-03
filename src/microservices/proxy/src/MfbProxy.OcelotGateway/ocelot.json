@@ -1,0 +1,39 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/weatherforecast",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5001
+        },
+        {
+          "Host": "localhost",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/api/weighted/weatherforecast",
+      "UpstreamHttpMethod": [ "GET" ],
+
+      "LoadBalancerOptions": {
+        "Type": "PercentageLoadBalancer",
+        "Key": "7,3"
+      },
+      "Metadata": {
+        "tags": "tag1,tag2,internal,api", // Здесь добавьте ваши теги как строку или JSON
+        "environment": "production",
+        "custom-key": "value"
+      },
+      "Tags": [
+        "products",
+        "catalog",
+        "v1"
+      ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:6001"
+  }
+}
+
