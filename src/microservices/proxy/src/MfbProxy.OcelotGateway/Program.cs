@@ -1,34 +1,22 @@
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using MfbProxy.OcelotGateway;
+using MfbProxy.OcelotGateway.Midllewares;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Values;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
+const string configurationsDirectory = "Configurations";
+var env = builder.Environment;
+ 
+
 builder.Configuration
-    .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"{configurationsDirectory}/appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"{configurationsDirectory}/appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"{configurationsDirectory}/ocelot.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"{configurationsDirectory}/ocelot.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddHealthChecks()
-    .AddCheck("self", () => 
-        Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Gateway is running"))
-    .AddCheck("migration_config", () =>
-    {
-        var migrationPercent = Environment.GetEnvironmentVariable("MOVIES_MIGRATION_PERCENT");
-        if (string.IsNullOrWhiteSpace(migrationPercent))
-        {
-            return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Degraded("MOVIES_MIGRATION_PERCENT not configured, using default");
-        }
-        
-        if (int.TryParse(migrationPercent, out var percent) && percent >= 0 && percent <= 100)
-        {
-            return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy($"Migration percent: {percent}%");
-        }
-        
-        return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy($"Invalid MOVIES_MIGRATION_PERCENT value: {migrationPercent}");
-    });
+builder.Services.AddCustomHealthChecks();
 
 builder.Services.AddCors(options =>
 {
@@ -59,42 +47,7 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        var response = new
-        {
-            status = report.Status.ToString(),
-            checks = report.Entries.Select(x => new
-            {
-                name = x.Key,
-                status = x.Value.Status.ToString(),
-                description = x.Value.Description,
-                duration = x.Value.Duration.TotalMilliseconds
-            }),
-            totalDuration = report.TotalDuration.TotalMilliseconds,
-            timestamp = DateTime.UtcNow
-        };
+app.MapCustomHealthChecks();
 
-        await context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        }));
-    }
-});
-
-app.MapHealthChecks("/health/ready", new HealthCheckOptions
-{
-    Predicate = _ => true, // Выполнить все проверки для готовности
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "text/plain";
-        await context.Response.WriteAsync(report.Status.ToString());
-    }
-}); 
- 
 await app.UseOcelot();
 await app.RunAsync();
