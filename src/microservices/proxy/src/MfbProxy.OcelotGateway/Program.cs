@@ -33,15 +33,16 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services
     .AddOcelot(builder.Configuration)
-    .AddCustomLoadBalancer((_, route, discoveryProvider) =>
+    .AddCustomLoadBalancer((serviceProvider, route, discoveryProvider) =>
     {
         if (discoveryProvider is null)
         {
             throw new InvalidOperationException("Service discovery provider is not configured for the current route.");
         }
-
+        // получаем функцию для доступа к списку сервисов, которые определены в ocelot.json
         Func<Task<List<Service>>> servicesAccessor = discoveryProvider.GetAsync;
-        return new PercentageLoadBalancer(servicesAccessor, route, route.LoadBalancerOptions?.Key);
+        var logger = serviceProvider.GetRequiredService<ILogger<PercentageLoadBalancer>>();
+        return new PercentageLoadBalancer(servicesAccessor, logger);
     });
 
 var app = builder.Build();
