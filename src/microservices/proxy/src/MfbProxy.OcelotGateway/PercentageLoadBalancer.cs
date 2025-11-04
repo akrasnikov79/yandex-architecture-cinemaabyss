@@ -9,15 +9,12 @@ namespace MfbProxy.OcelotGateway;
 /// </summary>
 public class PercentageLoadBalancer : ILoadBalancer
 {
-    private readonly Func<Task<List<Service>>> _services;
-    private readonly int[] _weights;
+    private readonly Func<Task<List<Service>>> _services; 
     private long _counter = -1;
 
-    public PercentageLoadBalancer(Func<Task<List<Service>>> services, Ocelot.Configuration.DownstreamRoute route, string? weights)
+    public PercentageLoadBalancer(Func<Task<List<Service>>> services)
     {
-        var r = route ?? throw new ArgumentNullException(nameof(route));
         _services = services ?? throw new ArgumentNullException(nameof(services));
-        _weights = ParseWeights(weights);
     }
 
     public string Type => nameof(PercentageLoadBalancer);
@@ -36,12 +33,12 @@ public class PercentageLoadBalancer : ILoadBalancer
             throw new InvalidOperationException("No downstream services are registered for PercentageLoadBalancer.");
         }
 
-        var weights = AlignWeights(services.Count);
+        var weights = GetWeights(services.Count);
         var totalWeight = weights.Sum();
 
         if (totalWeight <= 0)
         {
-            throw new InvalidOperationException("PercentageLoadBalancer received zero total weight configuration.");
+            return new OkResponse<ServiceHostAndPort>(services[0].HostAndPort);
         }
 
         var nextIndex = GetNextIndex(totalWeight);
@@ -51,58 +48,51 @@ public class PercentageLoadBalancer : ILoadBalancer
         {
             cumulative += weights[i];
             if (nextIndex < cumulative)
-            {
-                var a = services[0].Tags;
+            { 
                 return new OkResponse<ServiceHostAndPort>(services[i].HostAndPort);
             }
         }
 
         return new OkResponse<ServiceHostAndPort>(services[0].HostAndPort);
-    }
+    } 
 
-    private static int[] ParseWeights(string? weights)
+    private static int[] GetWeights(int serviceCount)
     {
-        if (string.IsNullOrWhiteSpace(weights))
+        var migrationEnvironment = Environment.GetEnvironmentVariable("MOVIES_MIGRATION_PERCENT");
+
+        if (string.IsNullOrWhiteSpace(migrationEnvironment) || !int.TryParse(migrationEnvironment, out var migrationPercent))
         {
-            return Array.Empty<int>();
+            // Если переменная не задана или невалидна, равномерно распределяем нагрузку
+            return [.. Enumerable.Repeat(1, serviceCount)];
         }
 
-        return weights
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(value => int.TryParse(value, out var parsed) && parsed > 0 ? parsed : 1)
-            .ToArray();
-    }
+        // Ограничиваем процент в диапазоне 0-100
+        migrationPercent = Math.Max(0, Math.Min(100, migrationPercent));
 
-    private int[] AlignWeights(int serviceCount)
-    {
-        if (_weights.Length == serviceCount)
+        if (serviceCount == 2)
         {
-            return _weights;
+            // Для двух сервисов: movies-service получает migrationPercent%, monolith получает остальное
+            var movies = migrationPercent;
+            var monolith = 100 - migrationPercent;
+            return [monolith, movies];
         }
 
-        if (_weights.Length == 0)
-        {
-            return Enumerable.Repeat(1, serviceCount).ToArray();
-        }
-
-        var aligned = new int[serviceCount];
-        for (var i = 0; i < serviceCount; i++)
-        {
-            aligned[i] = _weights[i % _weights.Length];
-        }
-
-        return aligned;
+        // Для других случаев равномерно распределяем
+        return [.. Enumerable.Repeat(1, serviceCount)];
     }
 
     private int GetNextIndex(int totalWeight)
     {
         var current = Interlocked.Increment(ref _counter);
-        if (current < 0)
+        
+        // Безопасная обработка переполнения и отрицательных значений
+        if (current < 0 || current > long.MaxValue - 1000)
         {
             current = 0;
             Interlocked.Exchange(ref _counter, 0);
         }
 
-        return (int)(current % totalWeight);
+        // Используем Math.Abs для дополнительной безопасности
+        return (int)(Math.Abs(current) % totalWeight);
     }
 }
