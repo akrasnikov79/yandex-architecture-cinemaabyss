@@ -1,14 +1,34 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MfbProxy.OcelotGateway;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Values;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables();
+
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => 
+        Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Gateway is running"))
+    .AddCheck("migration_config", () =>
+    {
+        var migrationPercent = Environment.GetEnvironmentVariable("MOVIES_MIGRATION_PERCENT");
+        if (string.IsNullOrWhiteSpace(migrationPercent))
+        {
+            return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Degraded("MOVIES_MIGRATION_PERCENT not configured, using default");
+        }
+        
+        if (int.TryParse(migrationPercent, out var percent) && percent >= 0 && percent <= 100)
+        {
+            return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy($"Migration percent: {percent}%");
+        }
+        
+        return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy($"Invalid MOVIES_MIGRATION_PERCENT value: {migrationPercent}");
+    });
 
 builder.Services.AddCors(options =>
 {
@@ -20,17 +40,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "MfbProxy Ocelot Gateway",
-        Version = "v1",
-        Description = "API endpoints exposed by the Ocelot gateway.",
-    });
-});
-
 builder.Services
     .AddOcelot(builder.Configuration)
     .AddCustomLoadBalancer((serviceProvider, route, discoveryProvider) =>
@@ -39,10 +48,10 @@ builder.Services
         {
             throw new InvalidOperationException("Service discovery provider is not configured for the current route.");
         }
-        // получаем функцию для доступа к списку сервисов, которые определены в ocelot.json
-        Func<Task<List<Service>>> servicesAccessor = discoveryProvider.GetAsync;
+        
+        Func<Task<List<Service>>> services = discoveryProvider.GetAsync;
         var logger = serviceProvider.GetRequiredService<ILogger<PercentageLoadBalancer>>();
-        return new PercentageLoadBalancer(servicesAccessor, logger);
+        return new PercentageLoadBalancer(services, logger);
     });
 
 var app = builder.Build();
@@ -50,20 +59,42 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+app.MapHealthChecks("/health", new HealthCheckOptions
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "MfbProxy Ocelot Gateway v1");
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var response = new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(x => new
+            {
+                name = x.Key,
+                status = x.Value.Status.ToString(),
+                description = x.Value.Description,
+                duration = x.Value.Duration.TotalMilliseconds
+            }),
+            totalDuration = report.TotalDuration.TotalMilliseconds,
+            timestamp = DateTime.UtcNow
+        };
+
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        }));
+    }
 });
 
-app.MapGet("/", () => Results.Ok(new
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
-    Service = "MfbProxy Ocelot Gateway",
-    Timestamp = DateTime.UtcNow
-}))
-.WithName("GatewayHealth")
-.WithSummary("Returns gateway basic information.")
-.WithDescription("Health endpoint confirming that the Ocelot gateway is running.");
-
+    Predicate = _ => true, // Р’С‹РїРѕР»РЅРёС‚СЊ РІСЃРµ РїСЂРѕРІРµСЂРєРё РґР»СЏ РіРѕС‚РѕРІРЅРѕСЃС‚Рё
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "text/plain";
+        await context.Response.WriteAsync(report.Status.ToString());
+    }
+}); 
+ 
 await app.UseOcelot();
 await app.RunAsync();
