@@ -3,7 +3,7 @@ using Ocelot.LoadBalancer.LoadBalancers;
 using Ocelot.Responses;
 using Ocelot.Values;
 
-namespace MfbProxy.OcelotGateway;
+namespace MfbProxy.OcelotGateway.Midllewares;
 
 /// <summary>
 /// Distributes requests across downstream services according to percentage weights.
@@ -37,10 +37,10 @@ public class PercentageLoadBalancer : ILoadBalancer
         }
 
         try
-        { 
-            var (weights, total) = GetWeights(services.Count);
+        {
+            var weights = GetWeights(services.Count);
 
-            var nextIndex = GetNextIndex(total);
+            var nextIndex = GetNextIndex(weights);
             var cumulative = 0;
 
             for (var i = 0; i < services.Count; i++)
@@ -62,53 +62,46 @@ public class PercentageLoadBalancer : ILoadBalancer
         return new OkResponse<ServiceHostAndPort>(services[0].HostAndPort);
     }
 
-    private static (int[] weights, int totalWeight) GetWeights(int serviceCount)
+    private static int[] GetWeights(int serviceCount)
     {
-        var migrationEnvironment = Environment.GetEnvironmentVariable("MOVIES_MIGRATION_PERCENT");
-        int[] weights;
+        var migrationEnvironment = Environment.GetEnvironmentVariable("MOVIES_MIGRATION_PERCENT"); 
 
         if (string.IsNullOrWhiteSpace(migrationEnvironment) || !int.TryParse(migrationEnvironment, out var migrationPercent))
         {
             // Если переменная не задана или невалидна, равномерно распределяем нагрузку
-            weights = [.. Enumerable.Repeat(1, serviceCount)];
-        }
-        else
+            return [.. Enumerable.Repeat(1, serviceCount)]; 
+        } 
+
+        if (serviceCount == 2)
         {
             // Ограничиваем процент в диапазоне 0-100
             migrationPercent = Math.Max(0, Math.Min(100, migrationPercent));
 
-            if (serviceCount == 2)
-            {
-                // Для двух сервисов: movies-service получает migrationPercent%, monolith получает остальное
-                var movies = migrationPercent;
-                var monolith = 100 - migrationPercent;
-                weights = [monolith, movies];
-            }
-            else
-            {
-                // Для других случаев равномерно распределяем
-                weights = [.. Enumerable.Repeat(1, serviceCount)];
-            }
-        }
+            // movies-service получает migrationPercent, monolith получает остальное
+            var movies = migrationPercent;
+            var monolith = 100 - migrationPercent;
+            return [monolith, movies]; 
+        } 
 
+        // Для других случаев равномерно распределяем
+        return [.. Enumerable.Repeat(1, serviceCount)]; 
+    }
+
+    /// <summary>
+    /// Вычисляет позицию для выбора следующего сервиса в алгоритме взвешенного распределения нагрузки.
+    /// Возвращает индекс на основе текущего счетчика и общего веса, индекс не больще total weight.
+    /// </summary>
+    /// <param name="total"></param>
+    /// <returns></returns>
+    private int GetNextIndex(int[] weights)
+    {
+        var current = Interlocked.Increment(ref _counter);
         var total = weights.Sum();
 
         if (total <= 0)
         {
             throw new InvalidOperationException("PercentageLoadBalancer received zero total weight configuration.");
         }
-
-        return (weights, total);
-    }
-
-    /// <summary>
-    /// Вычисляет позицию для выбора следующего сервиса в алгоритме взвешенного распределения нагрузки.
-    /// </summary>
-    /// <param name="total"></param>
-    /// <returns></returns>
-    private int GetNextIndex(int total)
-    {
-        var current = Interlocked.Increment(ref _counter);
 
         // Безопасная обработка переполнения и отрицательных значений
         if (current < 0 || current > long.MaxValue - 1000)
