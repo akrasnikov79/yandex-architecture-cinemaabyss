@@ -3,7 +3,7 @@ using System.Text.Json;
 
 static class HealthCheckExtensions
 {
-    public static IServiceCollection AddCustomHealthChecks(this IServiceCollection services)
+    public static IServiceCollection AddMoviesMigrationHealthChecks(this IServiceCollection services)
     {
         return services.AddHealthChecks()
             .AddCheck("self", () => 
@@ -26,7 +26,7 @@ static class HealthCheckExtensions
             .Services;
     }
 
-    public static WebApplication MapCustomHealthChecks(this WebApplication app)
+    public static WebApplication MapMoviesMigrationHealthChecks(this WebApplication app)
     {
         app.MapHealthChecks("/health", new HealthCheckOptions
         {

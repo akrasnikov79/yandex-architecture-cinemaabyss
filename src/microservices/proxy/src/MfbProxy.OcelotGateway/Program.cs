@@ -16,7 +16,7 @@ builder.Configuration
     .AddJsonFile($"{configurationsDirectory}/ocelot.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddCustomHealthChecks();
+builder.Services.AddMoviesMigrationHealthChecks();
 
 builder.Services.AddCors(options =>
 {
@@ -47,7 +47,7 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 
-app.MapCustomHealthChecks();
+app.MapMoviesMigrationHealthChecks();
 
 await app.UseOcelot();
 await app.RunAsync();
