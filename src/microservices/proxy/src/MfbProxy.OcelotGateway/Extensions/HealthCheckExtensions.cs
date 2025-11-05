@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Text.Json;
 
-static class HealthCheckConfiguration
+static class HealthCheckExtensions
 {
     public static IServiceCollection AddCustomHealthChecks(this IServiceCollection services)
     {
