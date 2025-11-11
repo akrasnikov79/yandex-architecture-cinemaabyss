@@ -26,7 +26,7 @@ static class HealthCheckExtensions
             .Services;
     }
 
-    public static WebApplication MapMoviesMigrationHealthChecks(this WebApplication app)
+    public static WebApplication UseMoviesMigrationHealthChecks(this WebApplication app)
     {
         app.MapHealthChecks("/health", new HealthCheckOptions
         {

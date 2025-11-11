@@ -1,7 +1,7 @@
+using MfbProxy.OcelotGateway.Extensions;
 using MfbProxy.OcelotGateway.Midllewares;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
-using Ocelot.Values;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,24 +30,14 @@ builder.Services.AddCors(options =>
 
 builder.Services
     .AddOcelot(builder.Configuration)
-    .AddCustomLoadBalancer((serviceProvider, route, discoveryProvider) =>
-    {
-        if (discoveryProvider is null)
-        {
-            throw new InvalidOperationException("Service discovery provider is not configured for the current route.");
-        }
-        
-        Func<Task<List<Service>>> services = discoveryProvider.GetAsync;
-        var logger = serviceProvider.GetRequiredService<ILogger<PercentageLoadBalancer>>();
-        return new PercentageLoadBalancer(services, logger);
-    });
+    .AddPercentageLoadBalancer();
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseCors();
 
-app.MapMoviesMigrationHealthChecks();
+app.UseMoviesMigrationHealthChecks();
 
 await app.UseOcelot();
 await app.RunAsync();
