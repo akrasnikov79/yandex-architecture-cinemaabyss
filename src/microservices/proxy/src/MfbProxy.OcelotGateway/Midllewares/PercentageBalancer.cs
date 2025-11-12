@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Ocelot.LoadBalancer.LoadBalancers;
 using Ocelot.Responses;
 using Ocelot.Values;
@@ -8,19 +7,19 @@ namespace MfbProxy.OcelotGateway.Midllewares;
 /// <summary>
 /// Distributes requests across downstream services according to percentage weights.
 /// </summary>
-public class PercentageLoadBalancer : ILoadBalancer
+public class PercentageBalancer : ILoadBalancer
 {
     private readonly Func<Task<List<Service>>> _services;
-    private readonly ILogger<PercentageLoadBalancer> _logger;
+    private readonly ILogger<PercentageBalancer> _logger;
     private long _counter = -1;
 
-    public PercentageLoadBalancer(Func<Task<List<Service>>> services, ILogger<PercentageLoadBalancer> logger)
+    public PercentageBalancer(Func<Task<List<Service>>> services, ILogger<PercentageBalancer> logger)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public string Type => nameof(PercentageLoadBalancer);
+    public string Type => nameof(PercentageBalancer);
 
     public void Release(ServiceHostAndPort hostAndPort)
     {
@@ -33,7 +32,7 @@ public class PercentageLoadBalancer : ILoadBalancer
 
         if (services.Count == 0)
         {
-            throw new InvalidOperationException("No downstream services are registered for PercentageLoadBalancer.");
+            throw new InvalidOperationException("No downstream services are registered for PercentageBalancer.");
         }
 
         try
@@ -100,7 +99,7 @@ public class PercentageLoadBalancer : ILoadBalancer
 
         if (total <= 0)
         {
-            throw new InvalidOperationException("PercentageLoadBalancer received zero total weight configuration.");
+            throw new InvalidOperationException("PercentageBalancer received zero total weight configuration.");
         }
 
         // Безопасная обработка переполнения и отрицательных значений

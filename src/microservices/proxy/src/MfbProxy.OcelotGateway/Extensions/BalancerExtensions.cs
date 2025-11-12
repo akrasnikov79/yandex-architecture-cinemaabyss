@@ -4,9 +4,9 @@ using Ocelot.Values;
 
 namespace MfbProxy.OcelotGateway.Extensions;
 
-static class LoadBalancerExtensions
+static class BalancerExtensions
 {
-    public static IOcelotBuilder AddPercentageLoadBalancer(this IOcelotBuilder builder)
+    public static IOcelotBuilder AddPercentageBalancer(this IOcelotBuilder builder)
     {
         return builder.AddCustomLoadBalancer((serviceProvider, route, discoveryProvider) =>
         {
@@ -16,8 +16,8 @@ static class LoadBalancerExtensions
             }
 
             Func<Task<List<Service>>> services = discoveryProvider.GetAsync;
-            var logger = serviceProvider.GetRequiredService<ILogger<PercentageLoadBalancer>>();
-            return new PercentageLoadBalancer(services, logger);
+            var logger = serviceProvider.GetRequiredService<ILogger<PercentageBalancer>>();
+            return new PercentageBalancer(services, logger);
         });
     }
 }

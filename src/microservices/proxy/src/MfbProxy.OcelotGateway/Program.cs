@@ -30,7 +30,7 @@ builder.Services.AddCors(options =>
 
 builder.Services
     .AddOcelot(builder.Configuration)
-    .AddPercentageLoadBalancer();
+    .AddPercentageBalancer();
 
 var app = builder.Build();
 
