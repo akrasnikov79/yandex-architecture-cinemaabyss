@@ -17,13 +17,7 @@ public class EventsController : ControllerBase
     {
         _publishEndpoint = publishEndpoint;
         _logger = logger;
-    }
-
-    [HttpGet("health")]
-    public IActionResult HealthCheck()
-    {
-        return Ok(new { status = true });
-    }
+    } 
 
     [HttpPost("movie")]
     public async Task<IActionResult> CreateMovieEvent([FromBody] MovieEvent movieEvent)
