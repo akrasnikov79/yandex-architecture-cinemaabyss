@@ -6,16 +6,10 @@ namespace CinemaAbyss.Events.Controllers;
 
 [ApiController]
 [Route("api/events")]
-public class EventsController : ControllerBase
+public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsController> logger) : ControllerBase
 {
-    private readonly IPublishEndpoint _prodicer;
-    private readonly ILogger<EventsController> _logger;
-
-    public EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsController> logger)
-    {
-        _prodicer = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly IPublishEndpoint _prodicer = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
+    private readonly ILogger<EventsController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     [HttpPost("movie")]
     public async Task<IActionResult> CreateMovie([FromBody] MovieEvent movieEvent)
