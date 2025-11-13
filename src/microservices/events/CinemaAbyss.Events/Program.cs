@@ -1,4 +1,5 @@
 using CinemaAbyss.Events.Consumers;
+using CinemaAbyss.Events.Middleware;
 using CinemaAbyss.Events.Models;
 using MassTransit;
 
@@ -70,6 +71,9 @@ builder.Services.AddSwaggerGen(c =>
 //});
 
 var app = builder.Build();
+
+// Configure global exception handler middleware
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
