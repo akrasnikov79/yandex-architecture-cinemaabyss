@@ -8,19 +8,17 @@ namespace CinemaAbyss.Events.Controllers;
 [Route("api/events")]
 public class EventsController : ControllerBase
 {
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IPublishEndpoint _prodicer;
     private readonly ILogger<EventsController> _logger;
 
-    public EventsController(
-        IPublishEndpoint publishEndpoint,
-        ILogger<EventsController> logger)
+    public EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsController> logger)
     {
-        _publishEndpoint = publishEndpoint;
-        _logger = logger;
-    } 
+        _prodicer = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
     [HttpPost("movie")]
-    public async Task<IActionResult> CreateMovieEvent([FromBody] MovieEvent movieEvent)
+    public async Task<IActionResult> CreateMovie([FromBody] MovieEvent movieEvent)
     {
         try
         {
@@ -31,23 +29,8 @@ public class EventsController : ControllerBase
                 movieEvent.Action
             );
 
-            await _publishEndpoint.Publish(movieEvent);
-
-            var eventResponse = new EventResponse
-            {
-                Status = "success",
-                Partition = 0, // MassTransit handles partitioning internally
-                Offset = 0,    // Kafka will assign actual offset
-                Event = new EventData
-                {
-                    Id = $"movie-{movieEvent.MovieId}-{movieEvent.Action}",
-                    Type = "movie",
-                    Timestamp = DateTime.UtcNow,
-                    Payload = movieEvent
-                }
-            };
-
-            return StatusCode(201, eventResponse);
+            await _prodicer.Publish(movieEvent);  
+            return StatusCode(201, "movie-event-created");
         }
         catch (Exception ex)
         {
@@ -57,7 +40,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpPost("user")]
-    public async Task<IActionResult> CreateUserEvent([FromBody] UserEvent userEvent)
+    public async Task<IActionResult> CreateUser([FromBody] UserEvent userEvent)
     {
         try
         {
@@ -67,23 +50,8 @@ public class EventsController : ControllerBase
                 userEvent.Action
             );
 
-            await _publishEndpoint.Publish(userEvent);
-
-            var eventResponse = new EventResponse
-            {
-                Status = "success",
-                Partition = 0,
-                Offset = 0,
-                Event = new EventData
-                {
-                    Id = $"user-{userEvent.UserId}-{userEvent.Action}",
-                    Type = "user",
-                    Timestamp = userEvent.Timestamp,
-                    Payload = userEvent
-                }
-            };
-
-            return StatusCode(201, eventResponse);
+            await _prodicer.Publish(userEvent); 
+            return StatusCode(201, "user-event-created");
         }
         catch (Exception ex)
         {
@@ -93,7 +61,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpPost("payment")]
-    public async Task<IActionResult> CreatePaymentEvent([FromBody] PaymentEvent paymentEvent)
+    public async Task<IActionResult> CreatePayment([FromBody] PaymentEvent paymentEvent)
     {
         try
         {
@@ -104,23 +72,8 @@ public class EventsController : ControllerBase
                 paymentEvent.Amount
             );
 
-            await _publishEndpoint.Publish(paymentEvent);
-
-            var eventResponse = new EventResponse
-            {
-                Status = "success",
-                Partition = 0,
-                Offset = 0,
-                Event = new EventData
-                {
-                    Id = $"payment-{paymentEvent.PaymentId}",
-                    Type = "payment",
-                    Timestamp = paymentEvent.Timestamp,
-                    Payload = paymentEvent
-                }
-            };
-
-            return StatusCode(201, eventResponse);
+            await _prodicer.Publish(paymentEvent); 
+            return StatusCode(201, "payment-event-created");
         }
         catch (Exception ex)
         {
