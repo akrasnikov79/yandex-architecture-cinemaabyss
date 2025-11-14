@@ -3,13 +3,13 @@ using MassTransit;
 
 namespace CinemaAbyss.Events.Consumers;
 
-public class PaymentEventConsumer : IConsumer<PaymentEvent>
+public class PaymentConsumer : IConsumer<PaymentEvent>
 {
-    private readonly ILogger<PaymentEventConsumer> _logger;
+    private readonly ILogger<PaymentConsumer> _logger;
 
-    public PaymentEventConsumer(ILogger<PaymentEventConsumer> logger)
+    public PaymentConsumer(ILogger<PaymentConsumer> logger)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public Task Consume(ConsumeContext<PaymentEvent> context)
