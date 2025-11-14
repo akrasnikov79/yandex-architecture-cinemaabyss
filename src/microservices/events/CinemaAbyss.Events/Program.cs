@@ -8,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add controllers
 builder.Services.AddControllers();
 
+// Add middleware services
+builder.Services.AddScoped<RequestLoggerMiddleware>();
+
 // Add exception handling
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -75,6 +78,9 @@ builder.Services.AddMassTransit(x =>
 });
 
 var app = builder.Build();
+
+// Configure request logger
+app.UseMiddleware<RequestLoggerMiddleware>();
 
 // Configure exception handler
 app.UseExceptionHandler();
