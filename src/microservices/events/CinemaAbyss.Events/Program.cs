@@ -19,60 +19,60 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "CinemaAbyss Events API", Version = "v1" });
 });
 
-// Configure MassTransit with Kafka
-//var kafkaBrokers = builder.Configuration["Kafka:Brokers"] ?? "localhost:9092";
 
-//builder.Services.AddMassTransit(x =>
-//{
-//    // Add consumers
-//    x.AddConsumer<MovieEventConsumer>();
-//    x.AddConsumer<UserEventConsumer>();
-//    x.AddConsumer<PaymentEventConsumer>();
+var broker = builder.Configuration["Kafka:Brokers"] ?? throw new InvalidOperationException("kafka broker url is not configure");
 
-//    // Use InMemory for service bus (required even when using Kafka)
-//    x.UsingInMemory((context, cfg) =>
-//    {
-//        cfg.ConfigureEndpoints(context);
-//    });
+builder.Services.AddMassTransit(x =>
+{
+    // Add consumers
+    x.AddConsumer<MovieConsumer>();
+    x.AddConsumer<UserConsumer>();
+    x.AddConsumer<PaymentConsumer>();
 
-//    // Configure Kafka Rider
-//    x.AddRider(rider =>
-//    {
-//        // Configure Kafka producer for publishing events
-//        rider.AddProducer<MovieEvent>("movie-events");
-//        rider.AddProducer<UserEvent>("user-events");
-//        rider.AddProducer<PaymentEvent>("payment-events");
+    // Use InMemory for service bus (required even when using Kafka)
+    x.UsingInMemory((context, cfg) =>
+    {
+        cfg.ConfigureEndpoints(context);
+    });
 
-//        // Configure Kafka consumers
-//        rider.AddConsumer<MovieEventConsumer>();
-//        rider.AddConsumer<UserEventConsumer>();
-//        rider.AddConsumer<PaymentEventConsumer>();
+    // Configure Kafka Rider
+    x.AddRider(rider =>
+    {
+        // Configure Kafka producer for publishing events
+        rider.AddProducer<MovieEvent>("movie-events");
+        rider.AddProducer<UserEvent>("user-events");
+        rider.AddProducer<PaymentEvent>("payment-events");
 
-//        rider.UsingKafka((context, k) =>
-//        {
-//            k.Host(kafkaBrokers);
+        // Configure Kafka consumers
+        rider.AddConsumer<MovieConsumer>();
+        rider.AddConsumer<UserConsumer>();
+        rider.AddConsumer<PaymentConsumer>();
 
-//            // Configure topic endpoints for consumers
-//            k.TopicEndpoint<MovieEvent>("movie-events", "events-service-group", e =>
-//            {
-//                e.ConfigureConsumer<MovieEventConsumer>(context);
-//                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
-//            });
+        rider.UsingKafka((context, k) =>
+        {
+            k.Host(broker);
 
-//            k.TopicEndpoint<UserEvent>("user-events", "events-service-group", e =>
-//            {
-//                e.ConfigureConsumer<UserEventConsumer>(context);
-//                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
-//            });
+            // Configure topic endpoints for consumers
+            k.TopicEndpoint<MovieEvent>("movie-events", "events-service-group", e =>
+            {
+                e.ConfigureConsumer<MovieConsumer>(context);
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+            });
 
-//            k.TopicEndpoint<PaymentEvent>("payment-events", "events-service-group", e =>
-//            {
-//                e.ConfigureConsumer<PaymentEventConsumer>(context);
-//                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
-//            });
-//        });
-//    });
-//});
+            k.TopicEndpoint<UserEvent>("user-events", "events-service-group", e =>
+            {
+                e.ConfigureConsumer<UserConsumer>(context);
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+            });
+
+            k.TopicEndpoint<PaymentEvent>("payment-events", "events-service-group", e =>
+            {
+                e.ConfigureConsumer<PaymentConsumer>(context);
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+            });
+        });
+    });
+});
 
 var app = builder.Build();
 

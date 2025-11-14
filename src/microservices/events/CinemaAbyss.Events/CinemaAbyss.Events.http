@@ -1,6 +1,0 @@
-@CinemaAbyss.Events_HostAddress = http://localhost:5080
-
-GET {{CinemaAbyss.Events_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

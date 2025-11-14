@@ -1,3 +1,4 @@
+using CinemaAbyss.Events.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
 
@@ -20,25 +21,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IHos
             httpContext.Request.Path
         );
 
-        var (statusCode, error, message) = GetErrorDetails(exception);
-
-        var response = new
-        {
-            error,
-            message,
-            statusCode = (int)statusCode,
-            traceId = httpContext.TraceIdentifier
-        };
-
-        httpContext.Response.StatusCode = (int)statusCode;
-        await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
-
-        return true;
-    }
-
-    private (HttpStatusCode StatusCode, string Error, string Message) GetErrorDetails(Exception exception)
-    {
-        return exception switch
+        var (statusCode, error, message) = exception switch
         {
             ArgumentNullException arg => (
                 HttpStatusCode.BadRequest,
@@ -50,7 +33,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IHos
                 HttpStatusCode.BadRequest,
                 "Bad Request",
                 arg.Message
-            ), 
+            ),
 
             _ => (
                 HttpStatusCode.InternalServerError,
@@ -58,13 +41,24 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IHos
                 GetSafeErrorMessage(exception)
             )
         };
+
+        var response = new ErrorResponse
+        {
+            Error = error,
+            Message = message,
+            StatusCode = (int)statusCode,
+            TraceId = httpContext.TraceIdentifier
+        };
+
+        httpContext.Response.StatusCode = (int)statusCode;
+        await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
+
+        return true;
     }
 
-    private string GetSafeErrorMessage(Exception exception)
-    {
-        return _environment.IsProduction()
+    private string GetSafeErrorMessage(Exception exception) =>
+        _environment.IsProduction()
             ? "An error occurred while processing your request"
             : exception.Message;
-    }
 }
 
