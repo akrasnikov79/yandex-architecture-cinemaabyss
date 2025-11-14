@@ -3,14 +3,9 @@ using MassTransit;
 
 namespace CinemaAbyss.Events.Consumers;
 
-public class MovieConsumer : IConsumer<MovieEvent>
+public class MovieConsumer(ILogger<MovieConsumer> logger) : IConsumer<MovieEvent>
 {
-    private readonly ILogger<MovieConsumer> _logger;
-
-    public MovieConsumer(ILogger<MovieConsumer> logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly ILogger<MovieConsumer> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public Task Consume(ConsumeContext<MovieEvent> context)
     {

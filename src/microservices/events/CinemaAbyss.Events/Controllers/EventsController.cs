@@ -1,4 +1,5 @@
-using CinemaAbyss.Events.Models;
+using CinemaAbyss.Events.Models.Events;
+using CinemaAbyss.Events.Models.Requests;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,41 +13,71 @@ public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsCo
     private readonly ILogger<EventsController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     [HttpPost("movie")]
-    public async Task<IActionResult> CreateMovie([FromBody] MovieEvent movieEvent)
+    public async Task<IActionResult> CreateMovie([FromBody] CreateMovieRequest request)
     {
         _logger.LogInformation(
             "Publishing movie event: MovieId={MovieId}, Title={Title}, Action={Action}",
-            movieEvent.MovieId,
-            movieEvent.Title,
-            movieEvent.Action
+            request.MovieId,
+            request.Title,
+            request.Action
         );
+
+        var movieEvent = new MovieEvent
+        {
+            MovieId = request.MovieId,
+            Title = request.Title,
+            Action = request.Action,
+            UserId = request.UserId,
+            Rating = request.Rating,
+            Genres = request.Genres,
+            Description = request.Description
+        };
 
         await _prodicer.Publish(movieEvent);
         return StatusCode(201, "movie-event-created");
     }
 
     [HttpPost("user")]
-    public async Task<IActionResult> CreateUser([FromBody] UserEvent userEvent)
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
         _logger.LogInformation(
             "Publishing user event: UserId={UserId}, Action={Action}",
-            userEvent.UserId,
-            userEvent.Action
+            request.UserId,
+            request.Action
         );
+
+        var userEvent = new UserEvent
+        {
+            UserId = request.UserId,
+            Username = request.Username,
+            Email = request.Email,
+            Action = request.Action,
+            Timestamp = DateTime.UtcNow
+        };
 
         await _prodicer.Publish(userEvent);
         return StatusCode(201, "user-event-created");
     }
 
     [HttpPost("payment")]
-    public async Task<IActionResult> CreatePayment([FromBody] PaymentEvent paymentEvent)
+    public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequest request)
     {
         _logger.LogInformation(
             "Publishing payment event: PaymentId={PaymentId}, UserId={UserId}, Amount={Amount}",
-            paymentEvent.PaymentId,
-            paymentEvent.UserId,
-            paymentEvent.Amount
+            request.PaymentId,
+            request.UserId,
+            request.Amount
         );
+
+        var paymentEvent = new PaymentEvent
+        {
+            PaymentId = request.PaymentId,
+            UserId = request.UserId,
+            Amount = request.Amount,
+            Status = request.Status,
+            Timestamp = DateTime.UtcNow,
+            MethodType = request.MethodType
+        };
 
         await _prodicer.Publish(paymentEvent);
         return StatusCode(201, "payment-event-created");

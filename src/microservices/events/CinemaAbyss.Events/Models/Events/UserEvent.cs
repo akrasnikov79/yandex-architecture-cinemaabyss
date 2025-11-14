@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CinemaAbyss.Events.Models;
+namespace CinemaAbyss.Events.Models.Events;
 
 public class UserEvent
 {
