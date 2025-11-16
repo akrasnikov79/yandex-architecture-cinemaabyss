@@ -289,3 +289,4 @@ dotnet add package PackageName --version x.x.x
 
 Откройте `CinemaAbyss.Events.sln` в вашей любимой IDE и начинайте разработку!
 
+

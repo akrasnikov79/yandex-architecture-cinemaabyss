@@ -22,3 +22,4 @@ EXPOSE 8083
 
 ENTRYPOINT ["dotnet", "CinemaAbyss.Events.Confluent.dll"]
 
+

@@ -227,3 +227,4 @@ Kafka UI доступен на `http://localhost:8090` (если запущен 
 - Мониторить consumer groups
 - Просматривать offsets
 
+

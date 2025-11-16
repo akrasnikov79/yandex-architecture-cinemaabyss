@@ -56,3 +56,4 @@ dotnet run
 Этот пример НЕ добавлен в `docker-compose.yml` - он предназначен только для демонстрации и сравнения подходов.
 Для production использования рекомендуется MassTransit вариант в папке `src/microservices/events/`.
 
+

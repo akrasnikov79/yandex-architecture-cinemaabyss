@@ -20,3 +20,4 @@ public class UserEvent
     public DateTime Timestamp { get; set; }
 }
 
+

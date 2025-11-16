@@ -23,3 +23,4 @@ EXPOSE 8082
 
 ENTRYPOINT ["dotnet", "CinemaAbyss.Events.dll"]
 
+

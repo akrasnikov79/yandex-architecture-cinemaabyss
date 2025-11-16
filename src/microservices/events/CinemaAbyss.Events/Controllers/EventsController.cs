@@ -1,3 +1,4 @@
+using CinemaAbyss.Events.Models;
 using CinemaAbyss.Events.Models.Events;
 using CinemaAbyss.Events.Models.Requests;
 using MassTransit;
@@ -9,7 +10,7 @@ namespace CinemaAbyss.Events.Controllers;
 [Route("api/events")]
 public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsController> logger) : ControllerBase
 {
-    private readonly IPublishEndpoint _prodicer = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
+    private readonly IPublishEndpoint _producer = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
     private readonly ILogger<EventsController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     [HttpPost("movie")]
@@ -33,7 +34,7 @@ public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsCo
             Description = request.Description
         };
 
-        await _prodicer.Publish(movieEvent);
+        await _producer.Publish(movieEvent);
         return StatusCode(201, "movie-event-created");
     }
 
@@ -55,7 +56,7 @@ public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsCo
             Timestamp = DateTime.UtcNow
         };
 
-        await _prodicer.Publish(userEvent);
+        await _producer.Publish(userEvent);
         return StatusCode(201, "user-event-created");
     }
 
@@ -79,7 +80,7 @@ public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsCo
             MethodType = request.MethodType
         };
 
-        await _prodicer.Publish(paymentEvent);
+        await _producer.Publish(paymentEvent);
         return StatusCode(201, "payment-event-created");
     }
 }
