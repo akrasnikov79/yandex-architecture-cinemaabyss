@@ -1,16 +1,11 @@
-using CinemaAbyss.Events.Models;
+using CinemaAbyss.Events.Models.Events;
 using MassTransit;
 
 namespace CinemaAbyss.Events.Consumers;
 
-public class PaymentConsumer : IConsumer<PaymentEvent>
+public class PaymentConsumer(ILogger<PaymentConsumer> logger) : IConsumer<PaymentEvent>
 {
-    private readonly ILogger<PaymentConsumer> _logger;
-
-    public PaymentConsumer(ILogger<PaymentConsumer> logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly ILogger<PaymentConsumer> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public Task Consume(ConsumeContext<PaymentEvent> context)
     {

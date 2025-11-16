@@ -1,4 +1,4 @@
-using CinemaAbyss.Events.Models;
+using CinemaAbyss.Events.Models.Events;
 using MassTransit;
 
 namespace CinemaAbyss.Events.Consumers;

@@ -8,13 +8,14 @@ namespace CinemaAbyss.Events.Controllers;
 
 [ApiController]
 [Route("api/events")]
-public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsController> logger) : ControllerBase
+public class EventsController(ILogger<EventsController> logger) : ControllerBase
 {
-    private readonly IPublishEndpoint _producer = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
     private readonly ILogger<EventsController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     [HttpPost("movie")]
-    public async Task<IActionResult> CreateMovie([FromBody] CreateMovieRequest request)
+    public async Task<IActionResult> CreateMovie(
+        [FromBody] CreateMovieRequest request,
+        [FromServices] ITopicProducer<MovieEvent> movieProducer)
     {
         _logger.LogInformation(
             "Publishing movie event: MovieId={MovieId}, Title={Title}, Action={Action}",
@@ -34,12 +35,14 @@ public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsCo
             Description = request.Description
         };
 
-        await _producer.Publish(movieEvent);
+        await movieProducer.Produce(movieEvent);
         return StatusCode(201, "movie-event-created");
     }
 
     [HttpPost("user")]
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+    public async Task<IActionResult> CreateUser(
+        [FromBody] CreateUserRequest request,
+        [FromServices] ITopicProducer<UserEvent> userProducer)
     {
         _logger.LogInformation(
             "Publishing user event: UserId={UserId}, Action={Action}",
@@ -56,12 +59,14 @@ public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsCo
             Timestamp = DateTime.UtcNow
         };
 
-        await _producer.Publish(userEvent);
+        await userProducer.Produce(userEvent);
         return StatusCode(201, "user-event-created");
     }
 
     [HttpPost("payment")]
-    public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequest request)
+    public async Task<IActionResult> CreatePayment(
+        [FromBody] CreatePaymentRequest request,
+        [FromServices] ITopicProducer<PaymentEvent> paymentProducer)
     {
         _logger.LogInformation(
             "Publishing payment event: PaymentId={PaymentId}, UserId={UserId}, Amount={Amount}",
@@ -80,7 +85,7 @@ public class EventsController(IPublishEndpoint publishEndpoint, ILogger<EventsCo
             MethodType = request.MethodType
         };
 
-        await _producer.Publish(paymentEvent);
+        await paymentProducer.Produce(paymentEvent);
         return StatusCode(201, "payment-event-created");
     }
 }
