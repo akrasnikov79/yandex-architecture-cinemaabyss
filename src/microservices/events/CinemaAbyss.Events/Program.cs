@@ -24,5 +24,11 @@ app.UseSwaggerDocumentation();
 
 app.MapControllers();
 
-var port = builder.Configuration["Port"] ?? "8082";
+if(app.Environment.IsDevelopment())
+{
+    app.Run();
+    return; 
+}
+
+var port = Environment.GetEnvironmentVariable("PORT"); 
 app.Run($"http://0.0.0.0:{port}");
