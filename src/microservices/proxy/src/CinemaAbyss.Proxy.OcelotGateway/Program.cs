@@ -1,4 +1,4 @@
-using MfbProxy.OcelotGateway.Extensions;
+using CinemaAbyss.Proxy.OcelotGateway.Extensions;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 

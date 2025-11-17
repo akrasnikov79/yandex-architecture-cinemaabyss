@@ -1,7 +1,7 @@
 using Yarp.ReverseProxy.LoadBalancing;
 using Yarp.ReverseProxy.Model;
 
-namespace MfbProxy.Gateway;
+namespace CinemaAbyss.Proxy.Gateway;
 
 /// <summary>
 /// Weighted Round Robin load balancing policy.
