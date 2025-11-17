@@ -1,5 +1,4 @@
 using MfbProxy.OcelotGateway.Extensions;
-using MfbProxy.OcelotGateway.Midllewares;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 
