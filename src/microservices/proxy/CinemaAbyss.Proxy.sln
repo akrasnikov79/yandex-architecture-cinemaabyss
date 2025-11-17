@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service1", "src\Service1\Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service2", "src\Service2\Service2.csproj", "{8515AD21-C1DB-4CF5-88BE-35C35AD23CB4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CinemaAbyss.Proxy.OcelotGateway", "src\CinemaAbyss.Proxy.OcelotGateway\CinemaAbyss.Proxy.OcelotGateway.csproj", "{647BFEA4-8B74-4988-A5F6-614F624D27E6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CinemaAbyss.Proxy", "src\CinemaAbyss.Proxy\CinemaAbyss.Proxy.csproj", "{647BFEA4-8B74-4988-A5F6-614F624D27E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

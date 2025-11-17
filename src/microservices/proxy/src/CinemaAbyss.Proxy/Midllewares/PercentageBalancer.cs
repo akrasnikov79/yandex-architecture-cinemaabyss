@@ -2,7 +2,7 @@ using Ocelot.LoadBalancer.LoadBalancers;
 using Ocelot.Responses;
 using Ocelot.Values;
 
-namespace CinemaAbyss.Proxy.OcelotGateway.Midllewares;
+namespace CinemaAbyss.Proxy.Midllewares;
 
 /// <summary>
 /// Distributes requests across downstream services according to percentage weights.
