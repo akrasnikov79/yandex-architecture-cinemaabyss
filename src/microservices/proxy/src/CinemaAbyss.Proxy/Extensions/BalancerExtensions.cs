@@ -1,8 +1,8 @@
-using MfbProxy.OcelotGateway.Midllewares;
+using CinemaAbyss.Proxy.Midllewares;
 using Ocelot.DependencyInjection;
 using Ocelot.Values;
 
-namespace MfbProxy.OcelotGateway.Extensions;
+namespace CinemaAbyss.Proxy.Extensions;
 
 static class BalancerExtensions
 {

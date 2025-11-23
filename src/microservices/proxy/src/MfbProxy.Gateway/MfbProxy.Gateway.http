@@ -1,6 +1,0 @@
-@MfbProxy.Gateway_HostAddress = http://localhost:5201
-
-GET {{MfbProxy.Gateway_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
