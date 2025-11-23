@@ -1,5 +1,7 @@
 using CinemaAbyss.Events.Extensions;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add controllers
