@@ -11,14 +11,12 @@ public class PercentageBalancer : ILoadBalancer
 {
     private readonly Func<Task<List<Service>>> _services;
     private readonly ILogger<PercentageBalancer> _logger;
-    private readonly List<ServiceHostAndPort> _customHostsAndPorts;
     private long _counter = -1;
 
     public PercentageBalancer(Func<Task<List<Service>>> services, ILogger<PercentageBalancer> logger)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _customHostsAndPorts = InitializeCustomHostsAndPorts();
     }
 
     public string Type => nameof(PercentageBalancer);
@@ -34,11 +32,7 @@ public class PercentageBalancer : ILoadBalancer
 
         if (services.Count == 0)
         {
-            _logger.LogError("Services count 0. Falling back to first service.", services.Count);
-            var fallbackHostAndPort = _customHostsAndPorts.Count > 0
-                ? _customHostsAndPorts[0]
-                : services[0].HostAndPort;
-            return new OkResponse<ServiceHostAndPort>(fallbackHostAndPort);
+            throw new InvalidOperationException("No downstream services are registered for PercentageBalancer.");
         }
 
         try
@@ -54,26 +48,17 @@ public class PercentageBalancer : ILoadBalancer
 
                 if (nextIndex < cumulative)
                 {
-                    // Переопределяем HostAndPort из переменных окружения, если они настроены
-                    var hostAndPort = _customHostsAndPorts.Count > i
-                        ? _customHostsAndPorts[i]
-                        : services[i].HostAndPort;
-
-                    return new OkResponse<ServiceHostAndPort>(hostAndPort);
+                    return new OkResponse<ServiceHostAndPort>(services[i].HostAndPort);
                 }
             }
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, "Failed to get weights configuration for load balancing. Services count: {ServiceCount}. Falling back to first service.", services.Count);
+            return new OkResponse<ServiceHostAndPort>(services[0].HostAndPort);
         }
 
-        // Переопределяем HostAndPort из переменных окружения для fallback
-        var fallbackHostAndPort = _customHostsAndPorts.Count > 0
-            ? _customHostsAndPorts[0]
-            : services[0].HostAndPort;
-
-        return new OkResponse<ServiceHostAndPort>(fallbackHostAndPort);
+        return new OkResponse<ServiceHostAndPort>(services[0].HostAndPort);
     }
 
     private static int[] GetWeights(int serviceCount)
@@ -127,55 +112,5 @@ public class PercentageBalancer : ILoadBalancer
         // Используем Math.Abs для дополнительной безопасности
         // Операция остатка от деления, которая дает значение от 0 до totalWeigh
         return (int)(Math.Abs(current) % total);
-    }
-
-    /// <summary>
-    /// Инициализирует список HostAndPort из переменных окружения.
-    /// Порядок: [0] = MONOLITH_URL, [1] = MOVIES_SERVICE_URL
-    /// </summary>
-    private List<ServiceHostAndPort> InitializeCustomHostsAndPorts()
-    {
-        var customHosts = new List<ServiceHostAndPort>();
-
-        var monolithUrl = Environment.GetEnvironmentVariable("MONOLITH_URL");
-        var moviesUrl = Environment.GetEnvironmentVariable("MOVIES_SERVICE_URL"); 
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(monolithUrl);
-        ArgumentException.ThrowIfNullOrWhiteSpace(moviesUrl);
-
-        customHosts.Add(CreateHostAndPort(monolithUrl));
-        customHosts.Add(CreateHostAndPort(moviesUrl));
-        
-
-        if (customHosts.Count == 0)
-        {
-            _logger.LogWarning("No custom service URLs configured.");
-        }
-
-        return customHosts;
-    }
-
-    /// <summary>
-    /// Парсит URL и создает ServiceHostAndPort.
-    /// Поддерживает форматы: http://host:port, https://host:port
-    /// </summary>
-    private ServiceHostAndPort CreateHostAndPort(string url)
-    {
-        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
-        {
-            var host = uri.Host;
-            var port = uri.Port;
-
-            // Если порт не указан явно, используем порт по умолчанию для схемы
-            if (port == -1)
-            {
-                port = uri.Scheme.ToLowerInvariant() == "https" ? 443 : 80;
-            }
-
-            return new ServiceHostAndPort(host, port);
-        }
-
-        throw new InvalidOperationException("No create host and port.");
-
     }
 }

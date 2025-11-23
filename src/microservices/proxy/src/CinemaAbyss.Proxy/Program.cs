@@ -15,7 +15,7 @@ builder.Configuration
     .AddJsonFile($"{configurationsDirectory}/ocelot.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddMoviesMigrationHealthChecks();
+//builder.Services.AddMoviesMigrationHealthChecks();
 
 builder.Services.AddCors(options =>
 {
@@ -36,7 +36,17 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 
-app.UseMoviesMigrationHealthChecks();
+//app.UseMoviesMigrationHealthChecks();
 
 await app.UseOcelot();
 await app.RunAsync();
+
+
+if (app.Environment.IsDevelopment())
+{
+    app.Run();
+    return;
+}
+
+var port = Environment.GetEnvironmentVariable("PORT");
+app.Run($"http://0.0.0.0:{port}");
