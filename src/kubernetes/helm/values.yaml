@@ -169,14 +169,26 @@ ingress:
   hosts:
     - host: cinemaabyss.example.com
       paths:
-        - path: /
-          pathType: Prefix
-          service: proxy-service
-          port: 80
+        # Маршрут для Events Service (прямой доступ для тестирования создания событий)
         - path: /api/events
           pathType: Prefix
           service: events-service
           port: 8082
+        # Маршрут для основного API через Proxy Service (API Gateway)
+        - path: /api
+          pathType: Prefix
+          service: proxy-service
+          port: 80
+        # Маршрут для health checks
+        - path: /health
+          pathType: Prefix
+          service: proxy-service
+          port: 80
+        # Корневой маршрут (для всех остальных запросов)
+        - path: /
+          pathType: Prefix
+          service: proxy-service
+          port: 80
 
 # Application configuration
 config:
