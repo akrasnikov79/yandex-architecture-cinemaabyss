@@ -55,7 +55,6 @@ public class PercentageBalancer : ILoadBalancer
         catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, "Failed to get weights configuration for load balancing. Services count: {ServiceCount}. Falling back to first service.", services.Count);
-            return new OkResponse<ServiceHostAndPort>(services[0].HostAndPort);
         }
 
         return new OkResponse<ServiceHostAndPort>(services[0].HostAndPort);
