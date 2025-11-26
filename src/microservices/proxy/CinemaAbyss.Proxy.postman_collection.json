@@ -1,0 +1,527 @@
+{
+	"info": {
+		"_postman_id": "mfb-proxy-collection-2024",
+		"name": "MFB Proxy - Gateway Collection",
+		"description": "Complete collection for testing YARP Gateway, Ocelot Gateway, and backend services",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "mfb-proxy"
+	},
+	"item": [
+		{
+			"name": "YARP Gateway (localhost:5050)",
+			"item": [
+				{
+					"name": "Service1 Routes",
+					"item": [
+						{
+							"name": "Service1 - Test Endpoint",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5050/api/service1/test",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"service1",
+										"test"
+									]
+								},
+								"description": "Test endpoint routed to Service1 through YARP Gateway"
+							},
+							"response": []
+						},
+						{
+							"name": "Service1 - Weather Forecast",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5050/api/service1/weatherforecast",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"service1",
+										"weatherforecast"
+									]
+								},
+								"description": "Weather forecast endpoint routed to Service1"
+							},
+							"response": []
+						},
+						{
+							"name": "Service1 - Health Check",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5050/api/service1/health",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"service1",
+										"health"
+									]
+								},
+								"description": "Health check endpoint for Service1"
+							},
+							"response": []
+						}
+					],
+					"description": "Routes to Service1 through YARP Gateway"
+				},
+				{
+					"name": "Service2 Routes (Round Robin)",
+					"item": [
+						{
+							"name": "Service2 - Test Endpoint",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5050/api/service2/test",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"service2",
+										"test"
+									]
+								},
+								"description": "Test endpoint with Round Robin load balancing. Run multiple times to see different destinations."
+							},
+							"response": []
+						},
+						{
+							"name": "Service2 - Weather Forecast",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5050/api/service2/weatherforecast",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"service2",
+										"weatherforecast"
+									]
+								},
+								"description": "Weather forecast with Round Robin load balancing"
+							},
+							"response": []
+						},
+						{
+							"name": "Service2 - Health Check",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5050/api/service2/health",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"service2",
+										"health"
+									]
+								},
+								"description": "Health check with Round Robin load balancing"
+							},
+							"response": []
+						}
+					],
+					"description": "Routes to Service2 with Round Robin load balancing"
+				},
+				{
+					"name": "Weighted Routes (70/30)",
+					"item": [
+						{
+							"name": "Weighted - Test Endpoint",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5050/api/weighted/test",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"weighted",
+										"test"
+									]
+								},
+								"description": "Weighted Round Robin: ~70% to Service1 (port 7001), ~30% to Service2 (port 7002). Run multiple times to see distribution."
+							},
+							"response": []
+						},
+						{
+							"name": "Weighted - Weather Forecast",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5050/api/weighted/weatherforecast",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"weighted",
+										"weatherforecast"
+									]
+								},
+								"description": "Weather forecast with Weighted Round Robin (70/30)"
+							},
+							"response": []
+						}
+					],
+					"description": "Routes with custom Weighted Round Robin load balancing (70% to Service1, 30% to Service2)"
+				},
+				{
+					"name": "Custom Policy (User-based routing)",
+					"item": [
+						{
+							"name": "Custom - Even User ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-User-ID",
+										"value": "100",
+										"type": "text",
+										"description": "Even user ID - should route to first server"
+									}
+								],
+								"url": {
+									"raw": "https://localhost:5050/api/service2/test",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"service2",
+										"test"
+									]
+								},
+								"description": "Routes based on X-User-ID header. Even IDs go to first server."
+							},
+							"response": []
+						},
+						{
+							"name": "Custom - Odd User ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-User-ID",
+										"value": "101",
+										"type": "text",
+										"description": "Odd user ID - should route to second server"
+									}
+								],
+								"url": {
+									"raw": "https://localhost:5050/api/service2/test",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5050",
+									"path": [
+										"api",
+										"service2",
+										"test"
+									]
+								},
+								"description": "Routes based on X-User-ID header. Odd IDs go to second server."
+							},
+							"response": []
+						}
+					],
+					"description": "Custom load balancing policy based on X-User-ID header"
+				}
+			],
+			"description": "YARP Reverse Proxy Gateway endpoints"
+		},
+		{
+			"name": "Ocelot Gateway (localhost:6001)",
+			"item": [
+				{
+					"name": "Gateway Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:6001/",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "6001",
+							"path": [
+								""
+							]
+						},
+						"description": "Ocelot Gateway health check endpoint"
+					},
+					"response": []
+				},
+				{
+					"name": "Swagger UI",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:6001/swagger",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "6001",
+							"path": [
+								"swagger"
+							]
+						},
+						"description": "Open Swagger UI for Ocelot Gateway"
+					},
+					"response": []
+				},
+				{
+					"name": "Weighted - Weather Forecast (70/30)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:6001/api/weighted/weatherforecast",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "6001",
+							"path": [
+								"api",
+								"weighted",
+								"weatherforecast"
+							]
+						},
+						"description": "Percentage-based load balancing: 70% to localhost:5001, 30% to localhost:5002. Run multiple times to see distribution."
+					},
+					"response": []
+				}
+			],
+			"description": "Ocelot API Gateway with custom percentage-based load balancing"
+		},
+		{
+			"name": "Direct Backend Services",
+			"item": [
+				{
+					"name": "Service1 (localhost:5001)",
+					"item": [
+						{
+							"name": "Service1 - Direct Health",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5001/health",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5001",
+									"path": [
+										"health"
+									]
+								},
+								"description": "Direct health check to Service1 (bypassing gateway)"
+							},
+							"response": []
+						},
+						{
+							"name": "Service1 - Direct Weather",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5001/weatherforecast",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5001",
+									"path": [
+										"weatherforecast"
+									]
+								},
+								"description": "Direct weather forecast from Service1"
+							},
+							"response": []
+						},
+						{
+							"name": "Service1 - Direct Test",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5001/api/test",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5001",
+									"path": [
+										"api",
+										"test"
+									]
+								},
+								"description": "Direct test endpoint on Service1"
+							},
+							"response": []
+						}
+					],
+					"description": "Direct access to Service1 endpoints"
+				},
+				{
+					"name": "Service2 (localhost:5002)",
+					"item": [
+						{
+							"name": "Service2 - Direct Health",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5002/health",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5002",
+									"path": [
+										"health"
+									]
+								},
+								"description": "Direct health check to Service2 (bypassing gateway)"
+							},
+							"response": []
+						},
+						{
+							"name": "Service2 - Direct Weather",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5002/weatherforecast",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5002",
+									"path": [
+										"weatherforecast"
+									]
+								},
+								"description": "Direct weather forecast from Service2"
+							},
+							"response": []
+						},
+						{
+							"name": "Service2 - Direct Test",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://localhost:5002/api/test",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "5002",
+									"path": [
+										"api",
+										"test"
+									]
+								},
+								"description": "Direct test endpoint on Service2"
+							},
+							"response": []
+						}
+					],
+					"description": "Direct access to Service2 endpoints"
+				}
+			],
+			"description": "Direct access to backend services (bypassing gateways)"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "yarp_gateway_base",
+			"value": "https://localhost:5050",
+			"type": "string"
+		},
+		{
+			"key": "ocelot_gateway_base",
+			"value": "https://localhost:6001",
+			"type": "string"
+		},
+		{
+			"key": "service1_base",
+			"value": "https://localhost:5001",
+			"type": "string"
+		},
+		{
+			"key": "service2_base",
+			"value": "https://localhost:5002",
+			"type": "string"
+		}
+	]
+}
+
+
