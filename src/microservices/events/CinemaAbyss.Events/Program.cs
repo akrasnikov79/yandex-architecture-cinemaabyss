@@ -28,9 +28,11 @@ app.MapControllers();
 
 if(app.Environment.IsDevelopment())
 {
-    app.Run();
-    return; 
+    var port = builder.Configuration["Port"] ?? "8082";
+    app.Run($"http://localhost:{port}");
 }
-
-var port = Environment.GetEnvironmentVariable("PORT"); 
-app.Run($"http://0.0.0.0:{port}");
+else
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8082"; 
+    app.Run($"http://0.0.0.0:{port}");
+}
