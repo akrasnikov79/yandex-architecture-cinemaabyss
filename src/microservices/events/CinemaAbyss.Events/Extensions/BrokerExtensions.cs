@@ -17,7 +17,8 @@ public static class BrokerExtensions
     /// <returns>Коллекция сервисов для цепочки вызовов</returns>
     public static IServiceCollection AddMessageBroker(this IServiceCollection services, IConfiguration configuration)
     {
-        var broker = configuration["Kafka:Brokers"] 
+        var broker = configuration["Kafka:Brokers"]
+            ?? configuration["KAFKA_BROKERS"]
             ?? throw new InvalidOperationException("kafka broker url is not configure");
 
         services.AddMassTransit(x =>
