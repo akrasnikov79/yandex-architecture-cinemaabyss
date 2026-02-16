@@ -12,6 +12,12 @@ public class EventsController(ILogger<EventsController> logger) : ControllerBase
 {
     private readonly ILogger<EventsController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
+    [HttpGet("health")]
+    public IActionResult Health()
+    {
+        return Ok(new { status = true });
+    }
+
     [HttpPost("movie")]
     public async Task<IActionResult> CreateMovie(
         [FromBody] CreateMovieRequest request,
