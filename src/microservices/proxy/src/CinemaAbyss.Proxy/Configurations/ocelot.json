@@ -9,9 +9,7 @@
       ],
       "UpstreamPathTemplate": "/api/movies",
       "UpstreamHttpMethod": ["GET"],
-      "LoadBalancerOptions": { "Type": "PercentageBalancer", "Key": "7,3" },
-      "Metadata": { "tags": "tag1,tag2,internal,api", "environment": "production", "custom-key": "value" },
-      "Tags": ["products", "catalog", "v1"]
+      "LoadBalancerOptions": { "Type": "PercentageBalancer", "Key": "7,3" }
     },
     {
       "DownstreamPathTemplate": "/api/users",
