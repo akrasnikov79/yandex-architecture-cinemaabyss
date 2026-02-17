@@ -4,33 +4,35 @@
       "DownstreamPathTemplate": "/api/movies",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        {
-          "Host": "monolith",
-          "Port": 8080
-        },
-        {
-          "Host": "movies-service",
-          "Port": 8081
-        }
+        { "Host": "monolith", "Port": 8080 },
+        { "Host": "movies-service", "Port": 8081 }
       ],
       "UpstreamPathTemplate": "/api/movies",
-      "UpstreamHttpMethod": [
-        "GET"
-      ],
-      "LoadBalancerOptions": {
-        "Type": "PercentageBalancer",
-        "Key": "7,3"
-      },
-      "Metadata": {
-        "tags": "tag1,tag2,internal,api",
-        "environment": "production",
-        "custom-key": "value"
-      },
-      "Tags": [
-        "products",
-        "catalog",
-        "v1"
-      ]
+      "UpstreamHttpMethod": ["GET"],
+      "LoadBalancerOptions": { "Type": "PercentageBalancer", "Key": "7,3" },
+      "Metadata": { "tags": "tag1,tag2,internal,api", "environment": "production", "custom-key": "value" },
+      "Tags": ["products", "catalog", "v1"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "monolith", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/users",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/payments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "monolith", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/payments",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/subscriptions",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "monolith", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/subscriptions",
+      "UpstreamHttpMethod": ["GET", "POST"]
     }
   ],
   "GlobalConfiguration": {
