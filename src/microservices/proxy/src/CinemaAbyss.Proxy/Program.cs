@@ -40,7 +40,10 @@ app.UseCors();
 
 app.MapGet("/health", () => Results.Ok(new { status = true }));
 
-await app.UseOcelot();
+app.MapWhen(context => context.GetEndpoint() == null, builder =>
+{
+    builder.UseOcelot().Wait();
+});
 
 if (app.Environment.IsDevelopment())
 {
