@@ -1,4 +1,5 @@
 using CinemaAbyss.Proxy.Midllewares;
+using Microsoft.Extensions.Configuration;
 using Ocelot.DependencyInjection;
 using Ocelot.Values;
 
@@ -17,7 +18,8 @@ static class BalancerExtensions
 
             Func<Task<List<Service>>> services = discoveryProvider.GetAsync;
             var logger = serviceProvider.GetRequiredService<ILogger<PercentageBalancer>>();
-            return new PercentageBalancer(services, logger);
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            return new PercentageBalancer(services, logger, configuration);
         });
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Ocelot.LoadBalancer.LoadBalancers;
 using Ocelot.Responses;
 using Ocelot.Values;
@@ -11,12 +12,14 @@ public class PercentageBalancer : ILoadBalancer
 {
     private readonly Func<Task<List<Service>>> _services;
     private readonly ILogger<PercentageBalancer> _logger;
+    private readonly IConfiguration _configuration;
     private long _counter = -1;
 
-    public PercentageBalancer(Func<Task<List<Service>>> services, ILogger<PercentageBalancer> logger)
+    public PercentageBalancer(Func<Task<List<Service>>> services, ILogger<PercentageBalancer> logger, IConfiguration configuration)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     public string Type => nameof(PercentageBalancer);
@@ -37,7 +40,7 @@ public class PercentageBalancer : ILoadBalancer
 
         try
         {
-            var weights = GetWeights(services.Count);
+            var weights = GetWeights(services.Count, _configuration);
 
             var nextIndex = GetNextIndex(weights);
             var cumulative = 0;
@@ -60,9 +63,9 @@ public class PercentageBalancer : ILoadBalancer
         return new OkResponse<ServiceHostAndPort>(services[0].HostAndPort);
     }
 
-    private static int[] GetWeights(int serviceCount)
+    private static int[] GetWeights(int serviceCount, IConfiguration configuration)
     {
-        var migrationEnvironment = Environment.GetEnvironmentVariable("MOVIES_MIGRATION_PERCENT");
+        var migrationEnvironment = configuration["MOVIES_MIGRATION_PERCENT"];
 
         if (string.IsNullOrWhiteSpace(migrationEnvironment) || !int.TryParse(migrationEnvironment, out var migrationPercent))
         {
