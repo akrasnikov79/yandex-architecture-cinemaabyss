@@ -1,27 +1,28 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/weatherforecast",
-      "DownstreamScheme": "https",
+      "DownstreamPathTemplate": "/api/movies",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5001
+          "Host": "monolith",
+          "Port": 8080
         },
         {
-          "Host": "localhost",
-          "Port": 5002
+          "Host": "movies-service",
+          "Port": 8081
         }
       ],
-      "UpstreamPathTemplate": "/api/weighted/weatherforecast",
-      "UpstreamHttpMethod": [ "GET" ],
-
+      "UpstreamPathTemplate": "/api/movies",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "LoadBalancerOptions": {
-        "Type": "PercentageLoadBalancer",
+        "Type": "PercentageBalancer",
         "Key": "7,3"
       },
       "Metadata": {
-        "tags": "tag1,tag2,internal,api", // Здесь добавьте ваши теги как строку или JSON
+        "tags": "tag1,tag2,internal,api",
         "environment": "production",
         "custom-key": "value"
       },
@@ -33,7 +34,6 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:6001"
+    "BaseUrl": "http://localhost:8000"
   }
 }
-
