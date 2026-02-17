@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 const string configurationsDirectory = "Configurations";
 var env = builder.Environment;
- 
+
 
 builder.Configuration
     .AddJsonFile($"{configurationsDirectory}/appsettings.json", optional: false, reloadOnChange: true)
@@ -38,15 +38,15 @@ app.UseCors();
 
 //app.UseMoviesMigrationHealthChecks();
 
-await app.UseOcelot();
-await app.RunAsync();
+app.MapGet("/health", () => Results.Ok(new { status = true }));
 
+await app.UseOcelot();
 
 if (app.Environment.IsDevelopment())
 {
-    app.Run();
+    await app.RunAsync();
     return;
 }
 
-var port = Environment.GetEnvironmentVariable("PORT");
-app.Run($"http://0.0.0.0:{port}");
+var port = Environment.GetEnvironmentVariable("PORT") ?? throw new ArgumentNullException("port is null");
+await app.RunAsync($"http://0.0.0.0:{port}");
