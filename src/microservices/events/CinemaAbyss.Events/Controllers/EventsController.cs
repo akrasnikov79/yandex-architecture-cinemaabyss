@@ -12,6 +12,12 @@ public class EventsController(ILogger<EventsController> logger) : ControllerBase
 {
     private readonly ILogger<EventsController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
+    [HttpGet("health")]
+    public IActionResult Health()
+    {
+        return Ok(new { status = true });
+    }
+
     [HttpPost("movie")]
     public async Task<IActionResult> CreateMovie(
         [FromBody] CreateMovieRequest request,
@@ -36,7 +42,7 @@ public class EventsController(ILogger<EventsController> logger) : ControllerBase
         };
 
         await movieProducer.Produce(movieEvent);
-        return StatusCode(201, "movie-event-created");
+        return StatusCode(201, new { status = "success", message = "movie-event-created" });
     }
 
     [HttpPost("user")]
@@ -60,7 +66,7 @@ public class EventsController(ILogger<EventsController> logger) : ControllerBase
         };
 
         await userProducer.Produce(userEvent);
-        return StatusCode(201, "user-event-created");
+        return StatusCode(201, new { status = "success", message = "user-event-created" });
     }
 
     [HttpPost("payment")]
@@ -86,7 +92,7 @@ public class EventsController(ILogger<EventsController> logger) : ControllerBase
         };
 
         await paymentProducer.Produce(paymentEvent);
-        return StatusCode(201, "payment-event-created");
+        return StatusCode(201, new { status = "success", message = "payment-event-created" });
     }
 }
 

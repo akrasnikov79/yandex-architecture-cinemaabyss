@@ -1,39 +1,39 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/weatherforecast",
-      "DownstreamScheme": "https",
+      "DownstreamPathTemplate": "/api/movies",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5001
-        },
-        {
-          "Host": "localhost",
-          "Port": 5002
-        }
+        { "Host": "monolith", "Port": 8080 },
+        { "Host": "movies-service", "Port": 8081 }
       ],
-      "UpstreamPathTemplate": "/api/weighted/weatherforecast",
-      "UpstreamHttpMethod": [ "GET" ],
-
-      "LoadBalancerOptions": {
-        "Type": "PercentageLoadBalancer",
-        "Key": "7,3"
-      },
-      "Metadata": {
-        "tags": "tag1,tag2,internal,api", // Здесь добавьте ваши теги как строку или JSON
-        "environment": "production",
-        "custom-key": "value"
-      },
-      "Tags": [
-        "products",
-        "catalog",
-        "v1"
-      ]
+      "UpstreamPathTemplate": "/api/movies",
+      "UpstreamHttpMethod": ["GET"],
+      "LoadBalancerOptions": { "Type": "PercentageBalancer", "Key": "7,3" }
+    },
+    {
+      "DownstreamPathTemplate": "/api/users",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "monolith", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/users",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/payments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "monolith", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/payments",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/subscriptions",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "monolith", "Port": 8080 }],
+      "UpstreamPathTemplate": "/api/subscriptions",
+      "UpstreamHttpMethod": ["GET", "POST"]
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:6001"
+    "BaseUrl": "http://localhost:8000"
   }
 }
-
