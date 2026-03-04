@@ -174,3 +174,68 @@ spec:
       - name: kafka-data
         persistentVolumeClaim:
           claimName: kafka-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafdrop
+  namespace: cinemaabyss
+  labels:
+    app: kafdrop
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9000
+    targetPort: 9000
+    name: http
+  selector:
+    app: kafdrop
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafdrop
+  namespace: cinemaabyss
+  labels:
+    app: kafdrop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafdrop
+  template:
+    metadata:
+      labels:
+        app: kafdrop
+    spec:
+      containers:
+      - name: kafdrop
+        image: obsidiandynamics/kafdrop:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          name: http
+        env:
+        - name: KAFKA_BROKERCONNECT
+          value: "kafka:9092"
+        - name: JVM_OPTS
+          value: "-Xms32M -Xmx64M"
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 9000
+          initialDelaySeconds: 60
+          periodSeconds: 15
