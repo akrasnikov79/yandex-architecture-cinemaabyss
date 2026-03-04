@@ -38,6 +38,15 @@ spec:
                 port:
                   number: 8000
           
+          # Маршрут для Kafdrop UI (мониторинг Kafka)
+          - path: /kafdrop
+            pathType: Prefix
+            backend:
+              service:
+                name: kafdrop
+                port:
+                  number: 9000
+          
           # Корневой маршрут (для всех остальных запросов)
           - path: /
             pathType: Prefix
