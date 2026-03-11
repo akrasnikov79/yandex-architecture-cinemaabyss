@@ -65,7 +65,7 @@ proxyService:
       cpu: 100m
       memory: 128Mi
   service:
-    port: 80
+    port: 8000
     targetPort: 8000
     type: ClusterIP
 
@@ -197,17 +197,17 @@ ingress:
         - path: /api
           pathType: Prefix
           service: proxy-service
-          port: 80
+          port: 8000
         # Маршрут для health checks
         - path: /health
           pathType: Prefix
           service: proxy-service
-          port: 80
+          port: 8000
         # Корневой маршрут (для всех остальных запросов)
         - path: /
           pathType: Prefix
           service: proxy-service
-          port: 80
+          port: 8000
     - host: kafka.cinemaabyss.example.com
       paths:
         - path: /
