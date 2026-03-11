@@ -164,8 +164,8 @@ kafdrop:
   enabled: true
   image:
     repository: obsidiandynamics/kafdrop
-    tag: latest
-    pullPolicy: IfNotPresent
+    tag: "3.31.0"
+    pullPolicy: Always
   replicas: 1
   resources:
     limits:
@@ -208,9 +208,14 @@ ingress:
           pathType: Prefix
           service: proxy-service
           port: 8000
+        # Маршрут для Kafdrop UI (мониторинг Kafka)
+        - path: /kafdrop
+          pathType: Prefix
+          service: kafdrop
+          port: 9000
     - host: kafka.cinemaabyss.example.com
       paths:
-        - path: /
+        - path: /kafdrop
           pathType: Prefix
           service: kafdrop
           port: 9000

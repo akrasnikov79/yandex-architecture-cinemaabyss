@@ -255,17 +255,19 @@ spec:
           value: "kafka:9092"
         - name: JVM_OPTS
           value: "-Xms32M -Xmx64M"
+        - name: SERVER_SERVLET_CONTEXTPATH
+          value: "/kafdrop"
         resources:
           {{- toYaml .Values.kafdrop.resources | nindent 10 }}
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /kafdrop/actuator/health
             port: 9000
           initialDelaySeconds: 30
           periodSeconds: 10
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /kafdrop/actuator/health
             port: 9000
           initialDelaySeconds: 60
           periodSeconds: 15
