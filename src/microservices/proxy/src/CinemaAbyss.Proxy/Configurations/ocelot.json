@@ -8,7 +8,7 @@
         { "Host": "movies-service", "Port": 8081 }
       ],
       "UpstreamPathTemplate": "/api/movies",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": ["GET", "POST"],
       "LoadBalancerOptions": { "Type": "PercentageBalancer", "Key": "7,3" }
     },
     {

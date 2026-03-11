@@ -159,6 +159,25 @@ zookeeper:
     size: 1Gi
     accessMode: ReadWriteOnce
 
+# Kafdrop configuration (Kafka Web UI)
+kafdrop:
+  enabled: true
+  image:
+    repository: obsidiandynamics/kafdrop
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  service:
+    port: 9000
+    type: ClusterIP
+
 # Ingress configuration
 ingress:
   enabled: true
@@ -189,6 +208,12 @@ ingress:
           pathType: Prefix
           service: proxy-service
           port: 80
+    - host: kafka.cinemaabyss.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: kafdrop
+          port: 9000
 
 # Application configuration
 config:
