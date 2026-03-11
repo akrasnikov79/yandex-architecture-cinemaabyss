@@ -26,7 +26,7 @@ spec:
       containers:
       - name: monolith
         image: {{ .Values.monolith.image.repository }}:{{ .Values.monolith.image.tag }}
-        imagePullPolicy: {{ .Values.monolith.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.monolith.image.pullPolicy | default "IfNotPresent" | quote }}
         ports:
         - containerPort: {{ .Values.monolith.service.targetPort }}
         env:

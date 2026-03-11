@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: monolith
-        image:  ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/monolith:latest
+        image:  ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/monolith
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
