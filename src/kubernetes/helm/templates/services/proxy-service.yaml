@@ -26,7 +26,7 @@ spec:
       containers:
         - name: proxy-service
           image: "{{ .Values.proxyService.image.repository }}:{{ .Values.proxyService.image.tag }}"
-          imagePullPolicy: {{ .Values.proxyService.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.proxyService.image.pullPolicy | default "IfNotPresent" | quote }}
           ports:
             - containerPort: {{ .Values.proxyService.service.targetPort }}
           resources:
