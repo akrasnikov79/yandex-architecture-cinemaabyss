@@ -1,0 +1,38 @@
+@startuml PlaybackFlow
+title Процесс получения контента пользователем (Playback Flow)
+autonumber
+
+actor "Клиент\n(Web, Mobile, Smart TV)" as client
+participant "API Gateway\n(Proxy Service)" as gw
+participant "Content Service" as content
+participant "Subscriptions Service" as subs
+participant "Amazon CloudFront\n(CDN)" as cdn
+queue "Apache Kafka\n(Event Bus)" as kafka
+
+== Проверка прав доступа ==
+client -> gw: GET /api/content/{id}/play
+gw -> subs: GET /api/subscriptions?user_id={id}\n(Проверка активной подписки)
+subs --> gw: 200 OK (Доступ разрешён)
+gw -> content: Проксирование запроса на получение URL
+
+content -> content: Формирование Signed URL\nдля HLS/DASH манифеста
+content --> gw: 200 OK (Signed URL + ключи)
+gw --> client: Возврат данных для плеера
+
+== Стриминг контента ==
+client -> cdn: GET {Signed URL} (manifest.m3u8 / .mpd)
+cdn --> client: Возврат манифеста списка сегментов
+
+loop В процессе просмотра
+    client -> cdn: GET chunk_1.ts / segment_1.m4s
+    cdn --> client: Отдача видеосегмента
+
+    == Телеметрия и аналитика (вызывается периодически) ==
+    client -> gw: POST /api/content/{id}/progress\n(Текущая секунда: XX)
+    gw -> content: Проксирование запроса
+    content -> kafka: Publish Event: "PlaybackProgress"\n{userId, contentId, progress}
+    content --> gw: 200 OK
+    gw --> client: ACK
+end
+
+@enduml

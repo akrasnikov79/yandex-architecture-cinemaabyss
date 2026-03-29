@@ -19,7 +19,6 @@ COPY --from=build /app/publish .
 COPY --from=build /src/src/CinemaAbyss.Proxy/Configurations ./Configurations/
 
 # Set environment variables
-ENV ASPNETCORE_URLS=http://+:8080
 ENV PORT=8080
 
 EXPOSE 8080
