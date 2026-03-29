@@ -1,29 +1,98 @@
 @startuml
-title FitLife Container Diagram
+title КиноБездна — To-Be Container Diagram (C4)
 
 top to bottom direction
 
-!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-Person(user, "User", "A user of the fitness club system")
-Person(admin, "Administrator", "An administrator managing the system")
-System(FitLifeSystem, "FitLife System", "System managing memberships, schedules, and payments")
+LAYOUT_WITH_LEGEND()
 
-Container_Boundary(FitLifeSystem, "FitLife System") {
-  Container(WebApp, "Web Application", "Java, Spring", "Handles user interactions")
-  Container(MobileApp, "Mobile Application", "Kotlin, Swift", "Allows users to manage their membership")
-  Container(PaymentService, "Payment Service", "Node.js", "Processes payments")
-  Container(Database, "Database", "PostgreSQL", "Stores user data and schedules")
+' ─── Акторы ───────────────────────────────────────────────────
+Person(user, "Пользователь", "Использует мобильные устройства,\nноутбуки и Smart TV")
+
+' ─── Внешние системы ──────────────────────────────────────────
+System_Ext(recommendation, "Рекомендательная система", "Сторонняя система\nформирования персональных подборок")
+System_Ext(payment_gw, "Платёжная система", "Внешний шлюз обработки платежей")
+System_Ext(loyalty, "Сервисы лояльности\n/ Маркетплейсы", "Внешние партнёрские интеграции")
+
+Enterprise_Boundary(aws, "Amazon Web Services") {
+    System_Ext(cdn, "CDN", "Amazon CloudFront.\nДоставка HLS/DASH сегментов.\nКэширование на Edge-нодах")
+    System_Ext(media, "AWS Media Services", "AWS Elemental MediaConvert.\nТранскодирование исходных видео\nв JITP / HLS / DASH форматы")
+    SystemDb_Ext(storage, "Object Storage", "Amazon S3.\nВидеофайлы,\nHLS/DASH-сегменты")
 }
 
-System_Ext(api, "Third-Party API", "External API for fitness data integration")
-System_Ext(bank, "Bank System", "External bank for processing payments")
+' ─── КиноБездна ───────────────────────────────────────────────
+System_Boundary(cinemaabyss, "КиноБездна") {
 
-Rel(user, WebApp, "Uses the system")
-Rel(admin, WebApp,"Manages the system")
-Rel(WebApp,PaymentService,"Processes payment requests")
-Rel(PaymentService,bank,"Processes payments")
-Rel(WebApp,Database,"Reads/Writes user data")
-Rel(MobileApp,Database,"Reads/Writes user data")
-Rel(WebApp,api,"Fetches fitness data")
+    Container(proxy, "API Gateway\n(Proxy Service)", "C# / Ocelot", "Единая точка входа для всех клиентов.\nМаршрутизирует запросы\nк микросервисам.\nБалансировка нагрузки")
+
+    Container(users_svc, "Users Service", "Go", "Аутентификация, управление\nпользователями, избранное")
+
+    Container(movies_svc, "Movies Service", "Go", "Микросервис метаданных о фильмах:\nназвания, описания, жанры, актёры,\nоценки, постеры")
+
+    Container(content_svc, "Content Service", "Go", "Управление видеоконтентом,\nправа доступа, генерация\nподписанных URL для плейлистов")
+
+    Container(payments_svc, "Payments Service", "Go", "Управление платежами,\nистория транзакций")
+
+    Container(subscriptions_svc, "Subscriptions Service", "Go", "Управление подписками,\nтарифные планы, скидки,\nавтопродление")
+
+    ContainerQueue(kafka, "Apache Kafka", "Apache Kafka", "Брокер сообщений.\nАсинхронная передача событий\nмежду доменами системы")
+
+    ContainerDb(db_users, "БД пользователей", "PostgreSQL", "Пользователи, избранное")
+
+    ContainerDb(db_movies, "БД фильмов", "PostgreSQL", "Метаданные фильмов, жанры,\nактёры, оценки")
+
+    ContainerDb(db_content, "БД просмотров", "PostgreSQL", "История просмотров,\nпрогресс, статистика")
+
+    ContainerDb(db_payments, "БД платежей", "PostgreSQL", "Платежи, транзакции")
+
+    ContainerDb(db_subscriptions, "БД подписок", "PostgreSQL", "Подписки, тарифные планы,\nскидки")
+
+}
+
+' ─── Клиент → Gateway ─────────────────────────────────────────
+Rel(user, proxy, "HTTPS / REST", "Web-браузер, мобильное приложение, Smart TV")
+Rel(user, cdn, "HLS / DASH", "Видеопоток напрямую из CDN")
+
+' ─── Gateway → сервисы ────────────────────────────────────────
+Rel(proxy, users_svc, "HTTP / REST", "auth, users, favorites")
+Rel(proxy, movies_svc, "HTTP / REST", "movies, genres, actors, ratings")
+Rel(proxy, content_svc, "HTTP / REST", "каталог контента, права доступа,\nURL плейлистов")
+Rel(proxy, payments_svc, "HTTP / REST", "payments, transactions")
+Rel(proxy, subscriptions_svc, "HTTP / REST", "subscriptions, plans, discounts")
+
+
+' ─── Users Service ───────────────────────────────────────────
+Rel(users_svc, db_users, "SQL", "Чтение / запись")
+Rel(users_svc, kafka, "Publish", "События: регистрация, авторизация")
+
+' ─── Movies Service ───────────────────────────────────────────
+Rel(movies_svc, db_movies, "SQL", "Чтение / запись метаданных")
+Rel(movies_svc, kafka, "Publish", "События: добавление, обновление фильма")
+Rel(movies_svc, recommendation, "REST (async)", "Запрос персональных рекомендаций")
+
+' ─── Content Service ──────────────────────────────────────────
+Rel(content_svc, db_content, "SQL", "Прогресс просмотра, статистика")
+Rel(content_svc, storage, "S3 API", "Загрузка исходных видеофайлов (.mp4)")
+Rel(content_svc, media, "REST API", "Запуск транскодирования (Jobs)")
+Rel(content_svc, kafka, "Publish", "События: начало, завершение просмотра, видео готово")
+
+Lay_U(content_svc, media)
+Lay_U(user, cdn)
+
+' ─── AWS Media Services & CDN ────────────────────────────────
+Rel(media, storage, "S3 API", "Чтение исходников, сохранение HLS/DASH")
+Rel(cdn, storage, "S3 API / HTTP", "Чтение видеосегментов (Origin)")
+
+' ─── Payments Service ─────────────────────────────────────────
+Rel(payments_svc, db_payments, "SQL", "Чтение / запись")
+Rel(payments_svc, kafka, "Publish", "События: платёж создан, отменён")
+Rel(payments_svc, payment_gw, "HTTPS / REST", "Проведение платежей")
+Rel(payments_svc, loyalty, "HTTPS / REST", "Синхронизация бонусов и скидок")
+
+' ─── Subscriptions Service ────────────────────────────────────
+Rel(subscriptions_svc, db_subscriptions, "SQL", "Чтение / запись")
+Rel(subscriptions_svc, kafka, "Publish", "События: подписка создана, продлена, отменена")
+
+
 @enduml

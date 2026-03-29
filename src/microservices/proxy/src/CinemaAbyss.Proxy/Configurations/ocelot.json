@@ -31,6 +31,20 @@
       "DownstreamHostAndPorts": [{ "Host": "monolith", "Port": 8080 }],
       "UpstreamPathTemplate": "/api/subscriptions",
       "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/events/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "events-service", "Port": 8082 }],
+      "UpstreamPathTemplate": "/api/events/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/movies/health",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "movies-service", "Port": 8081 }],
+      "UpstreamPathTemplate": "/api/movies/health",
+      "UpstreamHttpMethod": ["GET"]
     }
   ],
   "GlobalConfiguration": {
