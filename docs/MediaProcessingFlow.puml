@@ -1,0 +1,40 @@
+@startuml MediaProcessingFlow
+title Поток загрузки и транскодирования видео (AWS Media Services)
+autonumber
+
+actor "Администратор / Автор" as admin
+participant "API Gateway" as gw
+participant "Content Service" as content_svc
+database "Amazon S3\n(Origin)" as s3
+participant "AWS MediaConvert" as media
+queue "Apache Kafka\n(Event Bus)" as kafka
+database "База данных\n(db_content)" as db
+
+admin -> gw: POST /api/content/upload (MP4 файл)
+gw -> content_svc: Проксирование запроса
+content_svc -> s3: Сохранение исходного файла (.mp4)
+s3 --> content_svc: Возврат S3 URI (s3://bucket/raw/video.mp4)
+
+content_svc -> db: Сохранение записи о видео\nв статусе PROCESSING
+
+== Инициация транскодирования ==
+content_svc -> media: CreateJob API\n(Input: MP4, Output: HLS/DASH)
+media --> content_svc: Возврат JobId (Идентификатор задачи)
+
+content_svc --> gw: 202 Accepted (Файл в процессе обработки)
+gw --> admin: Возврат статуса пользователю
+
+== Асинхронная обработка (AWS MediaConvert) ==
+note over media, s3: MediaConvert забирает MP4, транскодирует и нарезает контент
+media -> s3: Сохранение готовых плейлистов и HLS/DASH сегментов\n(m3u8, ts, mpd)
+
+== Окончание подготовки видео ==
+media -> content_svc: Webhook / EventBridge Notification\n(Job COMPLETE)
+content_svc -> db: Обновление статуса видео на READY
+
+content_svc -> kafka: Publish Event:\n"VideoProcessedAndReady"
+note right: Movies Service обновит доступность фильма,\nподписавшись на это событие
+
+content_svc --> media: 200 OK (Уведомление получено)
+
+@enduml

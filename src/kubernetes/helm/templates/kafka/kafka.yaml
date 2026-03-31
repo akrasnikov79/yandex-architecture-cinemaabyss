@@ -204,3 +204,69 @@ spec:
         emptyDir: {}
       {{- end }}
 {{- end }}
+{{- if .Values.kafdrop.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafdrop
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: kafdrop
+    app.kubernetes.io/name: {{ include "cinemaabyss.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.kafdrop.service.type }}
+  ports:
+  - port: {{ .Values.kafdrop.service.port }}
+    targetPort: 9000
+    name: http
+  selector:
+    app: kafdrop
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafdrop
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: kafdrop
+    app.kubernetes.io/name: {{ include "cinemaabyss.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.kafdrop.replicas }}
+  selector:
+    matchLabels:
+      app: kafdrop
+  template:
+    metadata:
+      labels:
+        app: kafdrop
+    spec:
+      containers:
+      - name: kafdrop
+        image: "{{ .Values.kafdrop.image.repository }}:{{ .Values.kafdrop.image.tag }}"
+        imagePullPolicy: {{ .Values.kafdrop.image.pullPolicy }}
+        ports:
+        - containerPort: 9000
+          name: http
+        env:
+        - name: KAFKA_BROKERCONNECT
+          value: "kafka:9092"
+        - name: JVM_OPTS
+          value: "-Xms32M -Xmx64M"
+        resources:
+          {{- toYaml .Values.kafdrop.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 9000
+          initialDelaySeconds: 60
+          periodSeconds: 15
+{{- end }}
