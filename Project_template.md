@@ -40,6 +40,7 @@
    - Разработка API Gateway (Proxy Service на базе Ocelot) для маршрутизации трафика и балансировки между старым монолитом и новыми сервисами.
    - Выделение домена `Movies` (метаданные о фильмах) в отдельный микросервис. 
    - Выделение домена логирования событий в MVP микросервис `Events-Service` для асинхронного взаимодействия через топики Apache Kafka.
+   - Паттерн не включён в диаграмму контейнеров (docs/Container.puml), так как является экспериментальным функционалом, связанным с использованием Kafka.
 3. **Миграция и частичное переключение (Canary Release):**
    - Деплой выделенных микросервисов и API Gateway в кластер K8s параллельно с работой старого монолита.
    - Активация постепенного переключения трафика для маршрута `/api/movies` (например, 50% на монолит / 50% на выделенный микросервис).
@@ -163,7 +164,7 @@ docker-compose up -d --no-build proxy-service
 **Архитектура:**
 Каждый POST-запрос через MassTransit публикует сообщение в Kafka (producer).
 Consumers той же consumer-группы (`events-service-group`) читают сообщения и записывают в лог с информацией о partition и offset.
-Сервис одновременно является producer и consumer — MVP для проверки гипотезы.
+Сервис является MVP для проверки гипотезы.
 
 #### Результаты тестирования
 
@@ -401,6 +402,14 @@ cat .docker/config.json | base64
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+**Скриншот вывода https://cinemaabyss.example.com/api/movies:**
+
+![GET /api/movies в Kubernetes](docs/screenshots/task-3-get-movies.png)
+
+**Скриншот логов events-service после вызова тестов:**
+
+![Events Service logs](docs/screenshots/test-event-sevice-logs.png)
+
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -431,11 +440,7 @@ proxyService:
 ```
 
 - Вместо ghcr.io/db-exp/cinemaabysstest/proxy-service напишите свой путь до образа для всех сервисов
-- для imagePullSecret проставьте свое значение (скопируйте из конфигурации kubernetes)
-  ```yaml
-  imagePullSecrets:
-      dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6ICJaR0l0Wlhod09tZG9jRjl2UTJocVZIa3dhMWhKVDIxWmFVZHJOV2hRUW10aFVXbFZSbTVaTjJRMFNYUjRZMWM9IgoJCX0KCX0sCgkiY3JlZHNTdG9yZSI6ICJkZXNrdG9wIiwKCSJjdXJyZW50Q29udGV4dCI6ICJkZXNrdG9wLWxpbnV4IiwKCSJwbHVnaW5zIjogewoJCSIteC1jbGktaGludHMiOiB7CgkJCSJlbmFibGVkIjogInRydWUiCgkJfQoJfSwKCSJmZWF0dXJlcyI6IHsKCQkiaG9va3MiOiAidHJ1ZSIKCX0KfQ==
-  ```
+- для imagePullSecret проставьте свое значение (скопируйте из конфигурации kubernetes) 
 
 2. В папке ./templates/services заполните шаблоны для proxy-service.yaml и events-service.yaml (опирайтесь на свою kubernetes конфигурацию - смысл helm'а сделать шаблоны для быстрого обновления и установки)
 
@@ -456,7 +461,7 @@ template:
 kubectl delete all --all -n cinemaabyss
 kubectl delete  namespace cinemaabyss
 ```
-Запустите 
+Запустите
 ```bash
 helm install cinemaabyss .\src\kubernetes\helm --namespace cinemaabyss --create-namespace
 ```
@@ -466,15 +471,38 @@ helm install cinemaabyss .\src\kubernetes\helm --namespace cinemaabyss --create-
 kafka.common.InconsistentClusterIdException: The Cluster ID OkOjGPrdRimp8nkFohYkCw doesn't match stored clusterId Some(sbkcoiSiQV2h_mQpwy05zQ) in meta.properties. The broker is trying to join the wrong cluster. Configured zookeeper.connect may be wrong.
 ```
 
-Проверьте развертывание:
+4. Включите Ingress-контроллер
+
+Helm-чарт разворачивает только прикладные ресурсы приложения (Deployment, Service, Ingress-правила), но **не устанавливает сам Ingress-контроллер** — он является инфраструктурным компонентом кластера и управляется отдельно. Без контроллера объект `kind: Ingress` создаётся, но не обрабатывается, и трафик не маршрутизируется.
+
+В minikube контроллер включается один раз командой:
+
+```bash
+minikube addons enable ingress
+```
+
+Дождитесь появления подов:
+```bash
+kubectl get pods -n ingress-nginx
+```
+
+5. Проверьте развертывание:
 ```bash
 kubectl get pods -n cinemaabyss
 minikube tunnel
 ```
 
-Потом вызовите 
-https://cinemaabyss.example.com/api/movies
-и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
+Потом вызовите
+http://cinemaabyss.example.com/api/movies
+и приложите скриншот развертывания helm и вывода http://cinemaabyss.example.com/api/movies
+
+#### Реализация Helm-чартов
+
+Заполнены шаблоны `src/kubernetes/helm/templates/services/proxy-service.yaml` и `src/kubernetes/helm/templates/services/events-service.yaml`.
+
+**Скриншот успешного helm install:**
+
+![Helm install task 4](docs/screenshots/helm-install-task4.png)
 
 ## Удаляем все
 

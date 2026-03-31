@@ -5,7 +5,7 @@ global:
 
 # Image pull secrets
 imagePullSecrets:
-  dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6ICJZV3R5WVhOdWFXdHZkamM1T21kcGRHaDFZbDl3WVhSZk1URkNVRlUxU0RSUk1FSTVTVWxqTTFGeVdrUk9TMTloWlZNellVcEdhazk2WkZRd2VFeHdXbWhKTlVWSWREVlBaMnAxTWtwV2RuRXhjVE4yTkRjNFVHcEdURXMzVFVKTVVVUnJiM3B1ZDFwb1V3PT0iCgkJfQoJfQp9
+  dockerconfigjson: eyJhdXRocyI6eyJnaGNyLmlvIjp7InVzZXJuYW1lIjoiYWtyYXNuaWtvdjc5IiwicGFzc3dvcmQiOiJnaXRodWJfcGF0XzExQlBVNUg0UTBPTzFET0F6bEtHd3JfV1B1S09odXh2UWNLUHR3OHB0T2FVUUxHeGxWR3I0T3c2UENob0NOZldFQU02UVNBTFZHNWY2Q3RXWmIiLCJhdXRoIjoiWVd0eVlYTnVhV3R2ZGpjNU9tZHBkR2gxWWw5d1lYUmZNVEZDVUZVMVNEUlJNRTlQTVVSUFFYcHNTMGQzY2w5WFVIVkxUMmgxZUhaUlkwdFFkSGM0Y0hSUFlWVlJURWQ0YkZaSGNqaFBkelpRUTJodlEwNW1WMFZCVFRaUlUwRk1Wa2MxWmpaRGRGZGFZZz09In19fQ==
 # Database configuration
 database:
   host: postgres
@@ -33,7 +33,7 @@ database:
 monolith:
   enabled: true
   image:
-    repository: ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/monolith:latest
+    repository: ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/monolith
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -53,7 +53,7 @@ monolith:
 proxyService:
   enabled: true
   image:
-    repository: ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/proxy-service:latest
+    repository: ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/proxy-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -73,7 +73,7 @@ proxyService:
 moviesService:
   enabled: true
   image:
-    repository: ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/movies-service:latest
+    repository: ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/movies-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -93,7 +93,7 @@ moviesService:
 eventsService:
   enabled: true
   image:
-    repository: ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/events-service:latest
+    repository: ghcr.io/akrasnikov79/yandex-architecture-cinemaabyss/events-service
     tag: latest
     pullPolicy: Always
   replicas: 1
