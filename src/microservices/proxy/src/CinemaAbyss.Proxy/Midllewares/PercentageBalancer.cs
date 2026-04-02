@@ -79,8 +79,10 @@ public class PercentageBalancer : ILoadBalancer
             migrationPercent = Math.Max(0, Math.Min(100, migrationPercent));
 
             // movies-service получает migrationPercent, monolith получает остальное
-            var movies = migrationPercent;
-            var monolith = 100 - migrationPercent;
+            // 100% = 5 запросов, округление вверх
+            const int totalSlots = 5;
+            var movies = (int)Math.Round(migrationPercent / 100.0 * totalSlots, MidpointRounding.AwayFromZero);
+            var monolith = totalSlots - movies;
             return [monolith, movies];
         }
 
