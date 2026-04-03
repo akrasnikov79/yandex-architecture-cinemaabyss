@@ -11,8 +11,7 @@ spec:
     - host: cinemaabyss.example.com
       http:
         paths:
-          #дополните конфигурацию для /
-          ...
+          # Маршрут для Events Service (прямой доступ для тестирования создания событий)
           - path: /api/events
             pathType: Prefix
             backend:
@@ -20,3 +19,39 @@ spec:
                 name: events-service
                 port:
                   number: 8082
+          
+          # Маршрут для основного API через Proxy Service (API Gateway)
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: proxy-service
+                port:
+                  number: 8000
+          
+          # Маршрут для health checks
+          - path: /health
+            pathType: Prefix
+            backend:
+              service:
+                name: proxy-service
+                port:
+                  number: 8000
+          
+          # Маршрут для Kafdrop UI (мониторинг Kafka)
+          - path: /kafdrop
+            pathType: Prefix
+            backend:
+              service:
+                name: kafdrop
+                port:
+                  number: 9000
+          
+          # Корневой маршрут (для всех остальных запросов)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: proxy-service
+                port:
+                  number: 8000
